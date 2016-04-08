@@ -92,6 +92,7 @@ $(document).ready(function() {
       klepetApp.procesirajUkaz('/pridruzitev ' + $(this).text());
       $('#poslji-sporocilo').focus();
     });
+    
   });
 
   socket.on('uporabniki', function(uporabniki) {
@@ -99,7 +100,15 @@ $(document).ready(function() {
     for (var i=0; i < uporabniki.length; i++) {
       $('#seznam-uporabnikov').append(divElementEnostavniTekst(uporabniki[i]));
     }
+     $("#seznam-uporabnikov div").click(function() {
+      var imeUporabnika = $(this).text();
+      document.querySelector("#poslji-sporocilo").value = '/zasebno "' + imeUporabnika + '"';
+      $('#poslji-sporocilo').focus();
+     });
   });
+ 
+
+   
 
   setInterval(function() {
     socket.emit('kanali');
