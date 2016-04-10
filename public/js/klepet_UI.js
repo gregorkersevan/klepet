@@ -3,7 +3,12 @@ function divElementEnostavniTekst(sporocilo) {
   if (jeSmesko) {
     sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
-  } else {
+  } 
+  var jeYoutube = sporocilo.indexOf('https://www.youtube.com/watch?v=') > -1;
+  if (jeYoutube) {
+    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
+    return $('<div style="font-weight: bold"></div>').html(sporocilo);
+  }else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
   }
 }
@@ -14,6 +19,7 @@ function divElementHtmlTekst(sporocilo) {
 
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
+  var elementiVideo = videiSporocilo(sporocilo);
   sporocilo = dodajSmeske(sporocilo);
   var sistemskoSporocilo;
 
@@ -21,15 +27,38 @@ function procesirajVnosUporabnika(klepetApp, socket) {
     sistemskoSporocilo = klepetApp.procesirajUkaz(sporocilo);
     if (sistemskoSporocilo) {
       $('#sporocila').append(divElementHtmlTekst(sistemskoSporocilo));
+      dodajVideo(elementiVideo);
     }
-  } else {
+  }
+  else {
+    if(videiSporocilo(sporocilo) ) dodajVideo(elementiVideo);
+    else{
     sporocilo = filtirirajVulgarneBesede(sporocilo);
     klepetApp.posljiSporocilo(trenutniKanal, sporocilo);
     $('#sporocila').append(divElementEnostavniTekst(sporocilo));
     $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
+    }
   }
 
   $('#poslji-sporocilo').val('');
+}
+
+function dodajFrame(video) {
+ return '<iframe style="width:200px; height:150px; margin-left:20px" src="https://www.youtube.com/embed/'+video+'" allowfullscreen></iframe>';
+}
+
+function videiSporocilo(sporocilo) {
+  var elementi = sporocilo.match(/(?:(?:http|https):\/\/www\.youtube\.com\/watch\?v=)(.{11})/gi);
+  for(var i in elementi) {
+    elementi[i] = elementi[i].replace(/(?:(?:http|https):\/\/www\.youtube\.com\/watch\?v=)(.{11})/gi, '$1');
+  }
+  return elementi;
+}
+
+function dodajVideo(elementi) {
+  for(var i in elementi) {
+    $('#sporocila').append(dodajFrame(elementi[i]));
+  }
 }
 
 var socket = io.connect();
@@ -76,6 +105,7 @@ $(document).ready(function() {
   socket.on('sporocilo', function (sporocilo) {
     var novElement = divElementEnostavniTekst(sporocilo.besedilo);
     $('#sporocila').append(novElement);
+    dodajVideo(videiSporocilo(sporocilo.besedilo));
   });
   
   socket.on('kanali', function(kanali) {
@@ -131,3 +161,4 @@ function dodajSmeske(vhodnoBesedilo) {
   }
   return vhodnoBesedilo;
 }
+
