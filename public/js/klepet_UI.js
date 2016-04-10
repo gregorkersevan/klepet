@@ -73,9 +73,18 @@ $(document).ready(function() {
     $('#sporocila').append(divElementHtmlTekst('Sprememba kanala.'));
   });
 
-  socket.on('sporocilo', function (sporocilo) {
-    var novElement = divElementEnostavniTekst(sporocilo.besedilo);
-    $('#sporocila').append(novElement);
+  socket.on('sporocilo', function (rezultat) {
+    var sporocilo;
+    sporocilo = 'Prijavljen si kot ' + rezultat.vzdevek + '.';
+    $('#sporocila').append(divElementHtmlTekst(sporocilo));
+  });
+  
+  socket.on('dregljaj', function (vzdevek) {
+    if(vzdevek.dregljaj){
+           $("#vsebina").jrumble();
+           $("#vsebina").trigger("startRumble");
+           setTimeout(function(){$("#vsebina").trigger("stopRumble")}, 1500);
+       }
   });
   
   socket.on('kanali', function(kanali) {
